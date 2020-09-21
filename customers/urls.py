@@ -11,10 +11,11 @@ router.register(r'customers', CustomerViewSet),
 # urlpatterns = router.urls
 
 urlpatterns = [
-    url(r'^api/customers/$', views.customer_list),
-    url(r'^api/customers/(?P<pk>[0-9]+)$', views.customer_detail)
+
+    # url(r'^api/customers/$', views.customer_list),
+    # url(r'^api/customers/(?P<pk>[0-9]+)$', views.customer_detail)
     # path('<int:id>/delete/', views.deleteById),
     # path('<int:id>/update', views.update),
-    # path(r'', include(router.urls)),
+    path(r'', include(router.urls)),
     # path('api-auth/', include('rest_framework.urls'))
 ]

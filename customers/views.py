@@ -11,9 +11,9 @@ from django.contrib import messages
 from .models import Customer
 from .serializers import CustomerSerializer
 
-# '''Info about all customers, Add new customer'''
-#
-#
+'''Info about all customers, Add new customer'''
+
+
 # @api_view(['GET', 'POST'])
 # def customer_list(request):
 #     if request.method == 'GET':
@@ -63,24 +63,43 @@ from .serializers import CustomerSerializer
 #         return JsonResponse({'message': 'Customer was deleted successfully!'}, status=status.HTTP_204_NO_CONTENT)
 
 
-
 class CustomerViewSet(viewsets.ModelViewSet):
-    queryset = Customer.objects.all()
+    queryset = Customer.objects.all().order_by("id")
     serializer_class = CustomerSerializer
 
+    def destroy(self, request, pk=None, *args, **kwargs):
+        try:
+            customer = Customer.objects.get(pk=pk)
+            customer.delete()
+            return Response({'message': 'Everything allright and deleted'})
+        except Customer.DoesNotExist:
+            return Response({'message': 'This customer does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
-@action(methods=['delete'], detail=False)
-def deleteById(self, request, id):
-    customer = Customer.objects.get(id=id)
-    customer.delete()
-    return messages.success("You`ve made it!!")
-    # return super(CustomerViewSet, self).deleteById(request, *args, **kwargs)
+    # def update(self, request, pk=None, *args, **kwargs):
+    #     try:
+    #         customer = Customer.objects.get(pk=pk)
+    #         # customer_serializer = CustomerSerializer(customer, data=request.POST)
+    #         if request.data.get('id'):
+    #             customer.save()
+    #         return Response({'message': 'Customer updated successfully'})
+    #     except Customer.DoesNotExist:
+    #         return Response({'message': 'This customer does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
-@action(methods=['put'], detail=False)
-def update(self, request, id):
-    customer = Customer.objects.all()
-    customer_serializer = CustomerSerializer(data=customer)
+    def get_object(self):
+        if self.action == 'create':
+            queryset = self.filter_queryset(self.get_queryset())
+            filter_kwargs = {self.request.data.get('id')}
+            obj = self.get_object(queryset, **filter_kwargs)
+            self.check_object_permissions(self.request, obj)
+            return obj
+        else:
+            return super(CustomerViewSet, self).get_object()
 
-    if customer.is_valid():
-        customer_serializer.save()
-        return Response({'info': "Customer updated successfuly"}, customer_serializer)
+    def create(self, request, *args, **kwargs):
+        if request.data.get('id'):
+            return super(CustomerViewSet, self).update({"info": "Updated successfully"}, *args, **kwargs)
+        else:
+            return super(CustomerViewSet, self).create(request, *args, **kwargs)
+
+
+
